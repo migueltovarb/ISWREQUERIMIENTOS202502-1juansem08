@@ -1,0 +1,120 @@
+{% extends 'finances/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Transacción - FinNotes{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-{% if form.instance.pk %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Transacción
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <i>Monto</i>
+                            {{ form.amount }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.date|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.category|as_crispy_field }}
+                        </div>
+                        <div class="col-12 mt-4">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% if form.instance.pk %}{% url 'transaction_list' %}{% else %}{% url 'dashboard' %}{% endif %}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-1"></i> Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        (function () {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+        
+        const typeSelector = document.querySelector('#id_type');
+        const categoryField = document.querySelector('#div_id_category');
+        
+        if (typeSelector) {
+            typeSelector.addEventListener('change', function() {
+                const type = this.value;
+                const categorySelect = document.querySelector('#id_category');
+                
+
+                categorySelect.innerHTML = '';
+                
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Selecciona una categoría';
+                categorySelect.appendChild(defaultOption);
+                
+
+                const categories = JSON.parse('{{ categories_json|escapejs }}');
+                categories.forEach(category => {
+                    if (category.type === type) {
+                        const option = document.createElement('option');
+                        option.value = category.id;
+                        option.textContent = category.name;
+                        option.style.backgroundColor = category.color;
+                        option.style.color = getContrastColor(category.color);
+                        categorySelect.appendChild(option);
+                    }
+                });
+            });
+        }
+        
+
+        function getContrastColor(hexColor) {
+
+            hexColor = hexColor.replace('#', '');
+            
+
+            const r = parseInt(hexColor.substr(0, 2), 16);
+            const g = parseInt(hexColor.substr(2, 2), 16);
+            const b = parseInt(hexColor.substr(4, 2), 16);
+            
+
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            
+
+            return brightness > 128 ? '#212529' : '#ffffff';
+        }
+    });
+</script>
+{% endblock %}

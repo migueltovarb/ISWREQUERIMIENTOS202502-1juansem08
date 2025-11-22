@@ -1,0 +1,382 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard - FinNotes{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4361ee;
+        --success: #2ecc71;
+        --danger: #e74c3c;
+        --light: #f8f9fa;
+        --dark: #343a40;
+        --secondary: #6c757d;
+        --gray-100: #f8f9fa;
+        --gray-200: #e9ecef;
+        --gray-300: #dee2e6;
+        --gray-400: #ced4da;
+        --gray-500: #adb5bd;
+        --gray-600: #6c757d;
+        --gray-700: #495057;
+        --gray-800: #343a40;
+        --gray-900: #212529;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 1.5rem;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .stat-card {
+        padding: 1.5rem;
+        border-radius: 12px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100%;
+        background: linear-gradient(to left, rgba(255, 255, 255, 0.2), transparent);
+    }
+
+    .stat-card .icon {
+        font-size: 2.5rem;
+        opacity: 0.2;
+        position: absolute;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .stat-card .value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+    }
+
+    .stat-card .label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray-600);
+        padding: 1rem 1.5rem;
+    }
+
+    .table td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+        border-color: var(--gray-100);
+    }
+
+    .badge {
+        padding: 0.4em 0.8em;
+        font-weight: 500;
+        border-radius: 50px;
+        font-size: 0.75rem;
+    }
+
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+        background-color: var(--gray-100);
+        margin: 0.5rem 0;
+    }
+
+    .progress-bar {
+        border-radius: 4px;
+    }
+
+    .btn {
+        padding: 0.5rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-outline-primary {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .text-success {
+        color: var(--success) !important;
+    }
+
+    .text-danger {
+        color: var(--danger) !important;
+    }
+
+    .bg-success-light {
+        background-color: rgba(46, 204, 113, 0.1) !important;
+    }
+
+    .bg-danger-light {
+        background-color: rgba(231, 76, 60, 0.1) !important;
+    }
+
+    .bg-primary-light {
+        background-color: rgba(67, 97, 238, 0.1) !important;
+    }
+
+    .no-data {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: var(--gray-500);
+    }
+
+    .no-data i {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .no-data p {
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Resumen Financiero</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item active" aria-current="page">Panel de Control</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'transaction_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Nueva Transacción
+        </a>
+    </div>
+
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-12 col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);">
+                <div class="label">Balance Total</div>
+                <div class="value">${{ balance|default:0|intcomma }}</div>
+                <div class="small">{{ current_month }}</div>
+                <i class="bi bi-wallet2 icon"></i>
+            </div>
+        </div>
+
+
+        <div class="col-12 col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);">
+                <div class="label">Ingresos</div>
+                <div class="value">${{ total_income|default:0|intcomma }}</div>
+                <div class="small">Este mes</div>
+                <i class="bi bi-arrow-down-circle icon"></i>
+            </div>
+        </div>
+
+
+        <div class="col-12 col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
+                <div class="label">Gastos</div>
+                <div class="value">${{ total_expenses|default:0|intcomma }}</div>
+                <div class="small">Este mes</div>
+                <i class="bi bi-arrow-up-circle icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-12 col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Últimas Transacciones</h5>
+                    <a href="{% url 'transaction_list' %}" class="btn btn-sm btn-outline-primary">
+                        Ver todas <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Categoría</th>
+                                    <th class="text-end">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td class="text-nowrap">{{ transaction.date|date:"d M" }}</td>
+                                    <td class="text-truncate" style="max-width: 200px;" title="{{ transaction.description }}">
+                                        {{ transaction.description|truncatechars:30 }}
+                                    </td>
+                                    <td>
+                                        <span class="badge" 
+                                              style="background-color: {{ transaction.category.color }}20; 
+                                                     color: {{ transaction.color }}; 
+                                                     border: 1px solid {{ transaction.category.color }}30">
+                                            {{ transaction.category.name }}
+                                        </span>
+                                    </td>
+<td class="text-end fw-bold {% if transaction.category.type == 'IN' %}text-success{% else %}text-danger{% endif %}">
+    {% if transaction.category.type == 'IN' %}+{% else %}-{% endif %}${{ transaction.amount|intcomma }}
+</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="no-data">
+                        <i class="bi bi-receipt"></i>
+                        <p>No hay transacciones recientes</p>
+                        <a href="{% url 'transaction_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i> Crear primera transacción
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen por Categorías</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs nav-tabs-card" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#expenses-tab" type="button" role="tab">
+                                Gastos
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#income-tab" type="button" role="tab">
+                                Ingresos
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content pt-3">
+
+                        <div class="tab-pane fade show active" id="expenses-tab" role="tabpanel">
+                            {% if expense_categories %}
+                                {% for category in expense_categories %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="small fw-medium">{{ category.name }}</span>
+                                        <span class="small">${{ category.total|intcomma }}</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-danger" 
+                                             role="progressbar" 
+                                             style="width: {{ category.percentage|default:0 }}%;" 
+                                             aria-valuenow="{{ category.percentage|default:0 }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-data py-4">
+                                    <i class="bi bi-pie-chart"></i>
+                                    <p>No hay datos de gastos</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="tab-pane fade" id="income-tab" role="tabpanel">
+                            {% if income_categories %}
+                                {% for category in income_categories %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="small fw-medium">{{ category.name }}</span>
+                                        <span class="small">${{ category.total|intcomma }}</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" 
+                                             role="progressbar" 
+                                             style="width: {{ category.percentage|default:0 }}%;" 
+                                             aria-valuenow="{{ category.percentage|default:0 }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-data py-4">
+                                    <i class="bi bi-graph-up"></i>
+                                    <p>No hay datos de ingresos</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

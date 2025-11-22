@@ -1,0 +1,120 @@
+{% extends 'finances/base.html' %}
+{% block title %}Categorías - FinNotes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Mis Categorías</h1>
+    <a href="{% url 'category_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Nueva Categoría
+    </a>
+</div>
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        {% if categories %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Color</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td class="fw-semibold">{{ category.name }}</td>
+                        <td>
+                            <span class="badge {% if category.type == 'income' %}bg-success{% else %}bg-danger{% endif %} bg-opacity-10 text-{% if category.type == 'income' %}success{% else %}danger{% endif %}">
+                                {{ category.get_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="d-inline-block rounded-circle me-2" style="width: 20px; height: 20px; background-color: {{ category.color }}"></span>
+                            <span class="text-muted small">{{ category.color|upper }}</span>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'category_edit' category.pk %}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   data-bs-toggle="tooltip" 
+                                   title="Editar categoría">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteModal{{ category.id }}"
+                                        data-bs-tooltip="tooltip"
+                                        title="Eliminar categoría">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="bi bi-tags" style="font-size: 3rem; color: #6c757d;"></i>
+            </div>
+            <h5 class="text-muted mb-3">No hay categorías registradas</h5>
+            <p class="text-muted mb-4">Comienza creando tu primera categoría para organizar tus transacciones.</p>
+            <a href="{% url 'category_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Crear Categoría
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+{% for category in categories %}
+<div class="modal fade" id="deleteModal{{ category.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirmar eliminación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la categoría <strong>"{{ category.name }}"</strong>?</p>
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>¡Advertencia!</strong> Todas las transacciones asociadas a esta categoría serán eliminadas.
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                </button>
+                <form action="{% url 'category_delete' category.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}
